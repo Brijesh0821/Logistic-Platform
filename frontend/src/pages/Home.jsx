@@ -42,7 +42,7 @@ export default function Home() {
             </div>
 
             {showCalc && (
-              <div className="mt-8 max-w-md animate-fadeIn">
+              <div className="mt-8 max-w-3xl animate-fadeIn">
                 <RateCalculator />
               </div>
             )}

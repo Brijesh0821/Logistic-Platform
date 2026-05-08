@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "../utils/axiosConfig";
 import Button from "../components/ui/Button";
 import Card, { CardBody } from "../components/ui/Card";
@@ -7,6 +7,7 @@ import FormField, { inputClass, invalidInputClass } from "../components/ui/FormF
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -28,13 +29,19 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const res = await axios.post("/auth/login", form);
+      const res = await axios.post("/auth/login", {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err) {
       console.log(err);
-      setErrors({ submit: "Invalid credentials. Please check your email and password." });
+      setErrors({
+        ...(err.response?.data?.errors || {}),
+        submit: err.response?.data?.msg || "Login failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -74,6 +81,9 @@ export default function Login() {
               />
             </FormField>
 
+            {location.state?.message && (
+              <p className="rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-700">{location.state.message}</p>
+            )}
             {errors.submit && <p className="rounded-lg bg-rose-50 p-3 text-sm font-medium text-rose-600">{errors.submit}</p>}
 
             <Button type="submit" disabled={loading} className="w-full">

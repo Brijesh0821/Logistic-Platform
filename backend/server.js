@@ -23,8 +23,6 @@ app.use("/api/user", userRoutes);
 app.use("/api/shipping", shippingRoutes);
 app.use("/api/chat", chatRoutes);
 
-connectDB();
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -51,8 +49,26 @@ app.get("/", (req, res) => {
   res.send("Server Running");
 });
 
+app.get("/api/health", (req, res) => {
+  res.json({
+    server: "running",
+    mongoConnected: connectDB.state.connected,
+    mongoError: connectDB.state.connected ? null : connectDB.state.lastError,
+    authStorage: connectDB.state.connected ? "mongo" : "local",
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 
-server.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
+const startServer = async () => {
+  const connected = await connectDB();
+  if (!connected) {
+    console.warn("MongoDB is unavailable. Auth will use local dev storage until MongoDB reconnects.");
+  }
+
+  server.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+  });
+};
+
+startServer();

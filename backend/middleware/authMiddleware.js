@@ -1,14 +1,15 @@
 const jwt = require("jsonwebtoken");
 
 module.exports = function (req, res, next) {
-  const token = req.header("Authorization");
+  const authHeader = req.header("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.split(" ")[1] : authHeader;
 
   if (!token) {
     return res.status(401).json({ msg: "No token, access denied" });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "swiftlogix-dev-secret");
     req.user = decoded;
     next();
   } catch (err) {

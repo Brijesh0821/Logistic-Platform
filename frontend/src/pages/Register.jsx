@@ -26,10 +26,15 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     const nextErrors = {};
-    if (!form.name) nextErrors.name = "Full name is required";
-    if (!form.email) nextErrors.email = "Email is required";
-    if (!form.phone) nextErrors.phone = "Phone number is required";
+    const email = form.email.trim().toLowerCase();
+    if (!form.name.trim()) nextErrors.name = "Full name is required";
+    if (!email) nextErrors.email = "Email is required";
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) nextErrors.email = "Enter a valid email address";
+    if (!form.phone.trim()) nextErrors.phone = "Phone number is required";
     if (!form.password) nextErrors.password = "Password is required";
+    if (form.password && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(form.password)) {
+      nextErrors.password = "Use 8+ characters with uppercase, lowercase, and a number";
+    }
     if (form.phone && !/^[6-9]\d{9}$/.test(form.phone)) nextErrors.phone = "Enter a valid 10 digit mobile number";
 
     if (Object.keys(nextErrors).length) {
@@ -39,11 +44,20 @@ export default function Register() {
 
     try {
       setLoading(true);
-      await axios.post("/auth/register", form);
-      navigate("/login");
+      await axios.post("/auth/register", {
+        ...form,
+        name: form.name.trim(),
+        email,
+        phone: form.phone.trim(),
+        company: form.company.trim(),
+      });
+      navigate("/login", { state: { message: "Account created. You can login now." } });
     } catch (err) {
       console.log(err.response?.data);
-      setErrors({ submit: err.response?.data?.msg || "Registration failed. Please try again." });
+      setErrors({
+        ...(err.response?.data?.errors || {}),
+        submit: err.response?.data?.msg || "Registration failed. Please try again.",
+      });
     } finally {
       setLoading(false);
     }
@@ -74,7 +88,7 @@ export default function Register() {
               <FormField label="Company">
                 <input name="company" value={form.company} onChange={handleChange} className={inputClass} placeholder="Company or store name" />
               </FormField>
-              <FormField label="Password" error={errors.password} required>
+              <FormField label="Password" error={errors.password} helper="Minimum 8 characters with uppercase, lowercase, and a number" required>
                 <input name="password" type="password" value={form.password} onChange={handleChange} className={fieldClass("password")} placeholder="Create password" />
               </FormField>
               <FormField label="Account type">
