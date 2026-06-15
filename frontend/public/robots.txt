@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /driver
+Disallow: /payment
+Disallow: /profile
+Disallow: /booking
+Disallow: /login
+Disallow: /register
+Disallow: /verify-otp
+
+Sitemap: https://swiftlogix-platform.onrender.com/sitemap.xml
