@@ -1,160 +1,95 @@
 const Booking = require("../models/Booking");
+const { compareCouriers, predictDelay } = require("../services/logisticsIntelligence");
 
-// 🔥 Tracking ID generator
-const generateTrackingId = () => {
-  return "TRK" + Math.floor(100000 + Math.random() * 900000);
-};
-
-// ➕ CREATE BOOKING (SAVE WITH USER + TRACKING)
-const getRandomCoord = () => ({
-  lat: 20 + Math.random() * 10,
-  lng: 70 + Math.random() * 10,
-});
+const generateTrackingId = () => `TRK${Math.floor(100000 + Math.random() * 900000)}`;
+const getRandomCoord = () => ({ lat: 20 + Math.random() * 10, lng: 70 + Math.random() * 10 });
 
 exports.createBooking = async (req, res) => {
   try {
     const origin = getRandomCoord();
-    const destination = getRandomCoord();
+    const intelligence = compareCouriers(req.body);
+    const selected = intelligence.quotes.find((quote) => quote.courier === req.body.selectedCourier) || intelligence.quotes.find((quote) => quote.bestValue);
+    const delayPrediction = predictDelay({
+      ...req.body,
+      chargeableWeight: intelligence.weightAnalysis.chargeableWeight,
+      weightMismatch: intelligence.weightAnalysis.mismatch,
+    });
 
-    const booking = new Booking({
+    const booking = await Booking.create({
       ...req.body,
       user: req.user.id,
       trackingId: generateTrackingId(),
-
+      price: req.body.price || selected.price,
+      selectedCourier: selected.courier,
+      courierQuotes: intelligence.quotes,
+      recommendation: intelligence.recommendation,
+      weightAnalysis: intelligence.weightAnalysis,
+      delayPrediction,
+      dimensions: {
+        length: req.body.length,
+        breadth: req.body.breadth,
+        height: req.body.height,
+      },
       origin,
-      destination,
+      destination: getRandomCoord(),
       currentLocation: origin,
     });
-
-    await booking.save();
-
-    res.json(booking);
-  } catch {
-    res.status(500).json({ msg: "Error" });
+    res.status(201).json(booking);
+  } catch (err) {
+    res.status(500).json({ msg: "Booking failed", error: err.message });
   }
 };
 
-// 📦 GET BOOKINGS (ONLY CURRENT USER)
 exports.getBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({
-      user: req.user.id,
-    });
-
-    res.json(bookings);
-
+    res.json(await Booking.find({ user: req.user.id }).sort({ createdAt: -1 }));
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Error fetching bookings" });
+    res.status(500).json({ msg: "Error fetching bookings", error: err.message });
   }
 };
 
-// 🔍 TRACK BOOKING (PUBLIC)
 exports.trackBooking = async (req, res) => {
   try {
-    const booking = await Booking.findOne({
-      trackingId: req.params.id,
-    });
-
-    if (!booking) {
-      return res.status(404).json({
-        msg: "Tracking ID not found",
-      });
-    }
-
+    const booking = await Booking.findOne({ trackingId: req.params.id });
+    if (!booking) return res.status(404).json({ msg: "Tracking ID not found" });
     res.json(booking);
-
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Error tracking booking" });
+    res.status(500).json({ msg: "Error tracking booking", error: err.message });
   }
 };
 
-// 🔧 UPDATE STATUS (ADMIN)
 exports.updateStatus = async (req, res) => {
   try {
-    const { status } = req.body;
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!booking) {
-      return res.status(404).json({ msg: "Booking not found" });
-    }
-
-    res.json({
-      msg: "Status updated",
-      booking,
-    });
-
+    const booking = await Booking.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true, runValidators: true });
+    if (!booking) return res.status(404).json({ msg: "Booking not found" });
+    res.json({ msg: "Status updated", booking });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Error updating status" });
+    res.status(500).json({ msg: "Error updating status", error: err.message });
   }
 };
 
-// 🔥 ADMIN: GET ALL BOOKINGS
-exports.getAllBookings = async (req, res) => {
+exports.getAllBookings = async (_req, res) => {
   try {
-    const bookings = await Booking.find();
-    res.json(bookings);
-  } catch {
-    res.status(500).json({ msg: "Error" });
+    res.json(await Booking.find().populate("user", "name email").sort({ createdAt: -1 }));
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching bookings", error: err.message });
   }
 };
 
-// 🚚 DRIVER BOOKINGS (all active bookings)
 exports.getDriverBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find({
-      driver: req.user.id,
-    });
-
-    res.json(bookings);
-  } catch {
-    res.status(500).json({ msg: "Error" });
-  }
-};
-
-// 🔥 Assign driver
-exports.assignDriver = async (req, res) => {
-  try {
-    const { driver } = req.body;
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      {
-        driver,
-        status: "Assigned",
-      },
-      { new: true }
-    );
-
-    res.json(booking);
-  } catch {
-    res.status(500).json({ msg: "Error assigning driver" });
+    res.json(await Booking.find({ driver: req.user.id }));
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching driver bookings", error: err.message });
   }
 };
 
 exports.assignDriver = async (req, res) => {
   try {
-    const { driverId } = req.body;
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      {
-        driver: driverId,
-        status: "Assigned",
-      },
-      { new: true }
-    );
-
+    const booking = await Booking.findByIdAndUpdate(req.params.id, { driver: req.body.driverId || req.body.driver, status: "Assigned" }, { new: true });
+    if (!booking) return res.status(404).json({ msg: "Booking not found" });
     res.json(booking);
-
-  } catch {
-    res.status(500).json({ msg: "Assign failed" });
+  } catch (err) {
+    res.status(500).json({ msg: "Error assigning driver", error: err.message });
   }
 };

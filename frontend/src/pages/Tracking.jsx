@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from "react-leaflet";
-import { FiMapPin, FiSearch } from "react-icons/fi";
+import { FiClock, FiMapPin, FiSearch, FiTruck } from "react-icons/fi";
 import io from "socket.io-client";
 import axios from "../utils/axiosConfig";
 import Button from "../components/ui/Button";
@@ -9,7 +9,7 @@ import EmptyState from "../components/ui/EmptyState";
 import { inputClass } from "../components/ui/FormField";
 import StatusBadge from "../components/ui/StatusBadge";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_SOCKET_URL || window.location.origin);
 const steps = ["Pending", "Assigned", "In Transit", "Delivered"];
 
 export default function Tracking() {
@@ -99,7 +99,21 @@ export default function Tracking() {
                 </div>
                 <p className="text-sm text-slate-600">From: {data.from || data.pickupAddress || data.pickup || "Not available"}</p>
                 <p className="mt-1 text-sm text-slate-600">To: {data.to || data.dropAddress || data.drop || "Not available"}</p>
+                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-blue-700"><FiTruck /> {data.selectedCourier || "Courier assignment pending"}</p>
               </div>
+
+              {data.delayPrediction && (
+                <div className="mb-5 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+                  <div className="flex items-center justify-between text-sm font-semibold text-emerald-800">
+                    <span className="flex items-center gap-2"><FiClock /> On-time probability</span>
+                    <strong>{data.delayPrediction.onTimeProbability}%</strong>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${data.delayPrediction.onTimeProbability}%` }} />
+                  </div>
+                  <p className="mt-2 text-xs text-emerald-700">{data.delayPrediction.riskFactors?.join(" • ")}</p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 {steps.map((step, index) => {

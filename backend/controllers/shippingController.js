@@ -1,4 +1,5 @@
 const { getRates } = require("../services/shippingService");
+const { compareCouriers, predictDelay } = require("../services/logisticsIntelligence");
 
 // 🔥 GET REAL PRICE
 exports.calculateRate = async (req, res) => {
@@ -29,4 +30,16 @@ exports.calculateRate = async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: "Rate calculation failed" });
   }
+};
+
+exports.compareCourierRates = (req, res) => {
+  const result = compareCouriers(req.body);
+  res.json({
+    ...result,
+    delayPrediction: predictDelay({
+      ...req.body,
+      chargeableWeight: result.weightAnalysis.chargeableWeight,
+      weightMismatch: result.weightAnalysis.mismatch,
+    }),
+  });
 };

@@ -3,6 +3,8 @@ const styles = {
   Assigned: "bg-blue-50 text-blue-700 ring-blue-200",
   "In Transit": "bg-indigo-50 text-indigo-700 ring-indigo-200",
   Delivered: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  Failed: "bg-rose-50 text-rose-700 ring-rose-200",
+  Returned: "bg-orange-50 text-orange-700 ring-orange-200",
   Active: "bg-emerald-50 text-emerald-700 ring-emerald-200",
 };
 

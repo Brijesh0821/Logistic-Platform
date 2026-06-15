@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FiRefreshCw, FiTruck } from "react-icons/fi";
+import { FiAlertTriangle, FiImage, FiRefreshCw, FiTruck } from "react-icons/fi";
 import axios from "../utils/axiosConfig";
 import Button from "../components/ui/Button";
 import Card, { CardBody, CardHeader } from "../components/ui/Card";
@@ -59,6 +59,22 @@ export default function Admin() {
     { key: "to", header: "Delivery", accessor: (row) => place(row, "to") },
     { key: "status", header: "Status", render: (row) => <StatusBadge status={row.status} /> },
     {
+      key: "risk",
+      header: "Weight Check",
+      accessor: (row) => row.weightAnalysis?.mismatch ? "Mismatch" : "Verified",
+      render: (row) => row.weightAnalysis?.mismatch
+        ? <span className="inline-flex items-center gap-1 font-semibold text-amber-700"><FiAlertTriangle /> {row.weightAnalysis.discrepancyPercent}% mismatch</span>
+        : <span className="font-semibold text-emerald-700">Verified</span>,
+    },
+    {
+      key: "images",
+      header: "Parcel Proof",
+      sortable: false,
+      render: (row) => row.parcelImages?.length
+        ? <div className="flex gap-1">{row.parcelImages.slice(0, 3).map((image, index) => <a key={`${row._id}-${index}`} href={image} target="_blank" rel="noreferrer"><img src={image} alt={`Parcel ${index + 1}`} className="h-10 w-10 rounded-md border border-slate-200 object-cover transition hover:scale-110" /></a>)}</div>
+        : <span className="inline-flex items-center gap-1 text-slate-400"><FiImage /> None</span>,
+    },
+    {
       key: "statusUpdate",
       header: "Update",
       sortable: false,
@@ -68,6 +84,8 @@ export default function Admin() {
           <option>Assigned</option>
           <option>In Transit</option>
           <option>Delivered</option>
+          <option>Failed</option>
+          <option>Returned</option>
         </select>
       ),
     },

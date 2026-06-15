@@ -10,9 +10,9 @@ const now = () =>
 
 const welcomeMessage = {
   sender: "bot",
-  text: "Welcome to SwiftLogix support. Ask me about tracking, delivery delay, pricing, pickup, refunds, payments, COD, insurance, vehicles, or account login.",
+  text: "Welcome to SwiftLogix AI Logistics Assistant. I can recommend couriers, explain volumetric weight, suggest packaging, compare COD vs prepaid, and help with tracking or delivery delays.",
   time: now(),
-  suggestions: ["Track order", "Shipment pricing", "Delivery delay"],
+  suggestions: ["Recommend courier", "Volumetric weight", "Packaging advice"],
 };
 
 const localFallback = (input) => {
@@ -36,8 +36,8 @@ const localFallback = (input) => {
     };
   }
   return {
-    reply: "I can help with tracking, pricing, pickup, delivery delay, payments, refunds, login issues, COD, insurance, fragile items, vehicle availability, ETA, and service areas.",
-    suggestions: ["Track order", "Shipment pricing", "Support contact"],
+    reply: "I can help with courier recommendations, volumetric weight, packaging, COD vs prepaid, tracking, pricing, delivery delays, insurance, and serviceability.",
+    suggestions: ["Recommend courier", "Volumetric weight", "COD vs Prepaid"],
   };
 };
 
@@ -121,7 +121,7 @@ export default function Chatbot() {
                 <FiTruck />
               </span>
               <div>
-                <p className="font-semibold">SwiftLogix Support</p>
+                <p className="font-semibold">AI Logistics Assistant</p>
                 <p className="text-xs text-emerald-300">Online now</p>
               </div>
             </div>

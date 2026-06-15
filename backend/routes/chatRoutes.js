@@ -19,6 +19,30 @@ const hasKeyword = (message, keyword) => {
 
 const intents = [
   {
+    name: "courier-recommendation",
+    keywords: ["recommend courier", "best courier", "which courier", "delhivery", "ecom express", "xpressbees", "blue dart"],
+    reply: "For the best courier choice, use Smart Shipment Booking and enter weight, dimensions, item type, priority, and payment mode. I will compare Delhivery, Ecom Express, Xpressbees, and Blue Dart, then explain the recommendation with a confidence score.",
+    suggestions: ["Volumetric weight", "COD vs Prepaid", "Packaging advice"],
+  },
+  {
+    name: "volumetric-weight",
+    keywords: ["volumetric", "dimensional weight", "weight mismatch", "weight fraud"],
+    reply: "Volumetric weight estimates how much space a parcel occupies. SwiftLogix calculates length x breadth x height / 5000 and compares it with declared weight. The higher value becomes chargeable weight, and a difference above 20% triggers a review warning.",
+    suggestions: ["Packaging advice", "Recommend courier"],
+  },
+  {
+    name: "packaging-advice",
+    keywords: ["packaging", "pack", "packing suggestion", "how to pack"],
+    reply: "Use a rigid right-sized box, fill empty space, seal every edge with strong tape, and upload clear parcel photos before pickup. Fragile items need inner cushioning, corner protection, a fragile label, and insurance.",
+    suggestions: ["Fragile shipment", "Insurance", "Volumetric weight"],
+  },
+  {
+    name: "cod-prepaid",
+    keywords: ["cod vs prepaid", "prepaid vs cod", "which payment", "cod or prepaid"],
+    reply: "Prepaid usually lowers courier fees and delivery failure risk. COD can improve customer conversion but adds collection fees, settlement time, and a slightly higher delay or return risk. Use COD for trusted serviceable routes and prepaid incentives for high-risk orders.",
+    suggestions: ["Recommend courier", "Delivery delay", "Shipment pricing"],
+  },
+  {
     name: "greeting",
     keywords: ["hi", "hello", "hey", "good morning", "good afternoon", "good evening", "namaste"],
     reply: "Hello! I am SwiftLogix support. I can help with tracking, pricing, pickup, delivery delays, payments, refunds, COD, insurance, and account issues.",

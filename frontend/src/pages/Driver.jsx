@@ -7,7 +7,7 @@ import Card, { CardBody, CardHeader } from "../components/ui/Card";
 import EmptyState from "../components/ui/EmptyState";
 import StatusBadge from "../components/ui/StatusBadge";
 
-const socket = io("http://localhost:5000");
+const socket = io(import.meta.env.VITE_SOCKET_URL || window.location.origin);
 
 const place = (booking, type) =>
   booking[type] || booking[`${type}Address`] || (type === "from" ? booking.pickup : booking.drop) || "Not available";
