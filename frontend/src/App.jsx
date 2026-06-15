@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -43,6 +44,11 @@ function ShellRoute({ children }) {
 function AppContent() {
   const location = useLocation();
   const isAppPage = Boolean(appPageMeta[location.pathname]);
+
+  useEffect(() => {
+    const pageTitle = appPageMeta[location.pathname]?.[0];
+    document.title = pageTitle ? `${pageTitle} | SwiftLogix` : "SwiftLogix | Smart Logistics Platform";
+  }, [location.pathname]);
 
   return (
     <>

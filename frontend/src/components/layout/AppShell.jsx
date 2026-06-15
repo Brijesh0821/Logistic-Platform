@@ -5,6 +5,7 @@ import {
   FiBox,
   FiCreditCard,
   FiHome,
+  FiLogIn,
   FiLogOut,
   FiMapPin,
   FiMenu,
@@ -32,6 +33,9 @@ export default function AppShell({ children, title = "Dashboard", subtitle }) {
   const navigate = useNavigate();
 
   const menu = useMemo(() => {
+    const publicItems = [{ to: "/tracking", label: "Tracking", icon: FiMapPin }];
+    if (!user) return publicItems;
+
     const roleItems = [];
     if (user?.role === "admin") roleItems.push({ to: "/admin", label: "Admin", icon: FiSettings });
     if (user?.role === "driver") roleItems.push({ to: "/driver", label: "Driver", icon: FiTruck });
@@ -82,15 +86,32 @@ export default function AppShell({ children, title = "Dashboard", subtitle }) {
         ))}
       </nav>
 
-      <div className="border-t border-slate-100 p-4">
-        <div className="mb-3 rounded-lg bg-slate-50 p-3">
-          <p className="text-sm font-semibold text-slate-900">{user?.name || "Logistics User"}</p>
-          <p className="truncate text-xs text-slate-500">{user?.email || "Operations workspace"}</p>
+      {user ? (
+        <div className="border-t border-slate-100 p-4">
+          <div className="mb-3 rounded-lg bg-slate-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">{user.name || "Logistics User"}</p>
+            <p className="truncate text-xs text-slate-500">{user.email || "Operations workspace"}</p>
+          </div>
+          <Button variant="ghost" className="w-full justify-start text-rose-600 hover:bg-rose-50" onClick={logout}>
+            <FiLogOut /> Logout
+          </Button>
         </div>
-        <Button variant="ghost" className="w-full justify-start text-rose-600 hover:bg-rose-50" onClick={logout}>
-          <FiLogOut /> Logout
-        </Button>
-      </div>
+      ) : (
+        <div className="border-t border-slate-100 p-4">
+          <div className="mb-3 rounded-lg bg-blue-50 p-3">
+            <p className="text-sm font-semibold text-slate-900">Guest tracking</p>
+            <p className="text-xs text-slate-500">Login to book and manage shipments.</p>
+          </div>
+          <div className="grid gap-2">
+            <Button className="w-full justify-center" onClick={() => navigate("/login")}>
+              <FiLogIn /> Login
+            </Button>
+            <Button variant="secondary" className="w-full justify-center" onClick={() => navigate("/register")}>
+              Register
+            </Button>
+          </div>
+        </div>
+      )}
     </aside>
   );
 
@@ -117,7 +138,7 @@ export default function AppShell({ children, title = "Dashboard", subtitle }) {
                 {subtitle && <p className="hidden text-sm text-slate-500 sm:block">{subtitle}</p>}
               </div>
             </div>
-            <Button variant="secondary" onClick={() => navigate("/booking")}>
+            <Button variant="secondary" onClick={() => navigate(user ? "/booking" : "/login")}>
               <FiBox /> New Shipment
             </Button>
           </div>
